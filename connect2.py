@@ -92,11 +92,17 @@ def getServerVMs(serverIP, user, password):
     return
 
 def openConfigFile():
-    fname = "/Users/flash/Documents/Python/vmware.cfg"
-    with open(fname) as f:
-        content = f.readlines()
-    content = [x.strip() for x in content]
-    return content
+
+        fname = "/Users/flash/Documents/Python/vmware.cfg"
+        try:
+            with open(fname) as f:
+                content = f.readlines()
+            content = [x.strip() for x in content]
+            return content
+        except IOError:
+            print "MadaFucku nie ma pliku cfg!"
+
+    
 
 def readConfigFile(config):
     config = str(config)
@@ -118,8 +124,11 @@ def saveToFile():
     return
 
 def openFileToWrite():
-    global file
-    file = open("/Users/flash/Documents/Python/vmware.txt","w+")
+    try:
+        global file
+        file = open("/Users/flash/Documents/Python/vmware.txt","w+")
+    except ValueError:
+        print "Nie dam rady zapisac"
     return
 
 def closeFile():
