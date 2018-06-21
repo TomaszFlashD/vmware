@@ -42,19 +42,21 @@ def getServerName (serverIP, user, password):
 
 def printDatastores(dataStore):
     file.write('{:25}'.format("datastore name") + '{:25}'.format("capacity") + '{:35}'.format("free space")+"\n")
+    index = 0
     for i in range (0, len(dataStore)):
-        if (i % 3):
+        if (i % 2):
             dataStoreSize = int(dataStore[i])
             if isTB(dataStoreSize):
                 dataStoreSizeStr = str(convertToTB(dataStoreSize)) + " TB"
             else:
                 dataStoreSizeStr = str(convertToGB(dataStoreSize)) +" GB"
-            if ((i == 2) or (i == 5) or (i == 8 ) or (i ==11)):
+            if (index % 2 ):
                 file.write('{:25}'.format(dataStoreSizeStr) + "\n")
             else:
                 file.write('{:25}'.format(dataStoreSizeStr) + " "),   
         else:
             file.write('{:25}'.format(dataStore[i])),
+	index = +1
     file.write("\n"),
     return
 
@@ -93,7 +95,7 @@ def getServerVMs(serverIP, user, password):
 
 def openConfigFile():
 
-        fname = "/Users/flash/Documents/Python/vmware.cfg"
+        fname = "/home/flash/vmware/vmware.cfg"
         try:
             with open(fname) as f:
                 content = f.readlines()
@@ -126,7 +128,7 @@ def saveToFile():
 def openFileToWrite():
     try:
         global file
-        file = open("/Users/flash/Documents/Python/vmware.txt","w+")
+        file = open("/home/flash/vmware/vmware.txt","w+")
     except ValueError:
         print "Nie dam rady zapisac"
     return
@@ -150,4 +152,3 @@ for i in range(0,(howManyServers(content))):
     getServerDatastores(serverIP, user, password)
     getServerVMs(serverIP, user, password)
 closeFile()
-
