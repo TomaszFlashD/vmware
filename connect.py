@@ -42,9 +42,10 @@ def getServerName (serverIP, user, password):
 
 def printDatastores(dataStore):
     print ('{:25}'.format("datastore name") + '{:25}'.format("capacity") + '{:35}'.format("free space"))
-
     for i in range (0, len(dataStore)):
-        if (i % 3):
+        if (i == 0) or ( (i % 3) == 0):
+           print ('{:25}'.format(dataStore[i])),
+        else: 
             dataStoreSize = int(dataStore[i])
             if isTB(dataStoreSize):
                 dataStoreSizeStr = str(convertToTB(dataStoreSize)) + " TB"
@@ -53,10 +54,7 @@ def printDatastores(dataStore):
             if ((i == 2) or (i == 5) or (i == 8 ) or (i ==11)):
                 print ('{:25}'.format(str(dataStoreSizeStr)))
             else:
-                print ('{:25}'.format(str(dataStoreSizeStr))),   
-        else:
-            print ('{:25}'.format(dataStore[i])),
-        
+                print ('{:25}'.format(str(dataStoreSizeStr))),
     return
 
 def getServerDatastores(serverIP, user, password):
@@ -81,18 +79,23 @@ def getServerVMs(serverIP, user, password):
     for id in listVmId:
         machineName = connect(serverIP, user, password, "vim-cmd vmsvc/get.summary " + id + "| grep name ")
         powerState = connect(serverIP, user, password, "vim-cmd vmsvc/power.getstate " + id)
+        machineDataStore = connect(serverIP, user, password, "vim-cmd vmsvc/get.datastores  " + id + "| grep name ")
+        machineDataStore = machineDataStore.replace(' ','')
+        machineDataStore = machineDataStore.replace('name','')
+        machineDataStore = machineDataStore.lstrip()
+        machineDataStore = machineDataStore.rstrip()
         machineName = machineName.lstrip()
         machineName = machineName.rstrip()
        
         powerState = powerState.split("\n",2)[1]
         if "on" in powerState:
-            print ('{:40}'.format(machineName) + " is: " + powerState)
+            print ('{:40}'.format(machineName) + " is: " + powerState + " datastore :" + machineDataStore)
         else:
-            print ('{:40}'.format(machineName) + " is: " + powerState)
+            print ('{:40}'.format(machineName) + " is: " + powerState + " datastore :" + machineDataStore)
     return
 
 def openConfigFile():
-    fname = "/Users/flash/ESXi/vmware.cfg"
+    fname = "/home/skrypty/vmware.cfg"
     with open(fname) as f:
         content = f.readlines()
     content = [x.strip() for x in content]
