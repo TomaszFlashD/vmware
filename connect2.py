@@ -95,7 +95,7 @@ def getServerVMs(serverIP, user, password):
 
 def openConfigFile():
 
-        fname = "/home/flash/vmware/vmware.cfg"
+        fname = "/home/skryptu/vmware.cfg"
         try:
             with open(fname) as f:
                 content = f.readlines()
