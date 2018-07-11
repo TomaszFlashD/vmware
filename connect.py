@@ -56,6 +56,7 @@ def printDatastores(dataStore):
     return
 
 def getServerDatastores(serverIP, user, password):
+
     dataStore = connect(serverIP, user, password, 'vim-cmd hostsvc/datastore/listsummary | grep \"name\|capacity\|freeSpace\"')
     dataStoreName = dataStore.replace(' ','')
     dataStoreName = dataStoreName.replace(',','')
@@ -69,40 +70,62 @@ def getServerDatastores(serverIP, user, password):
     return
 
 def getVMPath(serverIP, user, password, id):
-    dataStore = connect(serverIP, user, password, "vim-cmd vmsvc/get.config " + id + "|grep vmPathName")
-    
-    return dataStore
+   
+
+    vmDataPath = connect(serverIP, user, password, 'vim-cmd vmsvc/get.config ' + id + '|grep vmfs |grep value')
+
+    return vmDataPath
 
 def clearFromTrashes(string):
+
     string = string.replace('"','')
     string = string.replace(',','')
     string = string.replace(' ','')
+    string = string.replace('=','')
     string = string.lstrip()
     string = string.rstrip()
     return string
 
+def clearFromTrashesWithoutSpaces(string):
+
+    string = string.replace('"','')
+    string = string.replace(',','')
+    string = string.replace('=','')
+    string = string.lstrip()
+    string = string.rstrip()
+    return string
+
+def getVMSize(serverIP, user, password, vmDataPath):
+    vmSize = connect(serverIP, user, password, 'du -h "' + vmDataPath + '"' + "|awk \'{print $1}'" )
+    return vmSize
+
 def getServerVMs(serverIP, user, password):
+
     VMsOnServer = connect(serverIP, user, password, "vim-cmd vmsvc/getallvms | awk \'{print $1}\'")
     listVmId = VMsOnServer.split('\n')
     listVmId.pop(0) #remove first item
     listVmId.pop() #remove last item
     print "\n Virtual Machines on server \n"
-    print ('{:30}'.format("VM Name") + '{:15}'.format("Power state") + '{:40}'.format("VM path"))
+    print ('{:30}'.format("VM Name") + '{:10}'.format("Power") + '{:80}'.format("VM path") + '{:10}'.format("VM Size GB"))
     for id in listVmId:
         machineName = connect(serverIP, user, password, "vim-cmd vmsvc/get.summary " + id + "| grep name ")
         powerState = connect(serverIP, user, password, "vim-cmd vmsvc/power.getstate " + id)
-        machineDataStore = getVMPath(serverIP, user, password, id)
-	machineDataStore = machineDataStore.replace('vmPathName = ','')
- 	machineDataStore = clearFromTrashes(machineDataStore)
+        machineDataPath = getVMPath(serverIP, user, password, id)
+	machineDataPath = machineDataPath.replace('value','')
+        machineDataPath = machineDataPath.rsplit('/',1)[0]
+        machineDataPath = machineDataPath + "/"
+ 	machineDataPath = clearFromTrashesWithoutSpaces(machineDataPath)
+        vmSize = getVMSize(serverIP, user, password, machineDataPath)
         machineName = machineName.replace('name = ','')
         machineName = clearFromTrashes(machineName)
         powerState = powerState.replace('Powered ','')      
         powerState = powerState.split("\n",2)[1]
         if "on" in powerState:
-            print ('{:30}'.format(machineName) + " " + '{:15}'.format(powerState) + " " + '{:40}'.format(machineDataStore))
+            print ('{:30}'.format(machineName) + " " + '\033[92m' '{:10}'.format(powerState) + '\033[0m' " " + '{:80}'.format(machineDataPath) + '{:10}'.format(vmSize))
         else:
-            print ('{:30}'.format(machineName) + " " + '{:15}'.format(powerState) + " " + '{:40}'.format(machineDataStore))
+            print ('{:30}'.format(machineName) + " " + '\033[91m' '{:10}'.format(powerState) + '\033[0m' " " + '{:80}'.format(machineDataPath) + '{:10}'.format(vmSize))
     return
+
 
 def openConfigFile():
     fname = "/home/skrypty/vmware.cfg"
