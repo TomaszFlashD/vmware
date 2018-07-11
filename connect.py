@@ -35,9 +35,7 @@ def isTB (size):
 def getServerName (serverIP, user, password):
     serverName = connect(serverIP, user, password, 'vim-cmd hostsvc/hostsummary | grep name | grep nomachine')
     serverName = serverName.replace('name = ','')
-    serverName = serverName.replace('\"','')
-    serverName = serverName.replace(',','')
-    serverName = serverName.replace(' ','')
+    serverName = clearFromTrashes(serverName)
     return serverName
 
 def printDatastores(dataStore):
@@ -81,7 +79,6 @@ def clearFromTrashes(string):
     string = string.replace(' ','')
     string = string.lstrip()
     string = string.rstrip()
-    string = string.replace('None','')
     return string
 
 def getServerVMs(serverIP, user, password):
