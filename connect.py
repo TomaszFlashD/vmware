@@ -70,28 +70,41 @@ def getServerDatastores(serverIP, user, password):
 
     return
 
+def getVMPath(serverIP, user, password, id):
+    dataStore = connect(serverIP, user, password, "vim-cmd vmsvc/get.config " + id + "|grep vmPathName")
+    
+    return dataStore
+
+def clearFromTrashes(string):
+    string = string.replace('"','')
+    string = string.replace(',','')
+    string = string.replace(' ','')
+    string = string.lstrip()
+    string = string.rstrip()
+    string = string.replace('None','')
+    return string
+
 def getServerVMs(serverIP, user, password):
     VMsOnServer = connect(serverIP, user, password, "vim-cmd vmsvc/getallvms | awk \'{print $1}\'")
     listVmId = VMsOnServer.split('\n')
     listVmId.pop(0) #remove first item
     listVmId.pop() #remove last item
     print "\n Virtual Machines on server \n"
+    print ('{:30}'.format("VM Name") + '{:15}'.format("Power state") + '{:40}'.format("VM path"))
     for id in listVmId:
         machineName = connect(serverIP, user, password, "vim-cmd vmsvc/get.summary " + id + "| grep name ")
         powerState = connect(serverIP, user, password, "vim-cmd vmsvc/power.getstate " + id)
-        machineDataStore = connect(serverIP, user, password, "vim-cmd vmsvc/get.datastores  " + id + "| grep name ")
-        machineDataStore = machineDataStore.replace(' ','')
-        machineDataStore = machineDataStore.replace('name','')
-        machineDataStore = machineDataStore.lstrip()
-        machineDataStore = machineDataStore.rstrip()
-        machineName = machineName.lstrip()
-        machineName = machineName.rstrip()
-       
+        machineDataStore = getVMPath(serverIP, user, password, id)
+	machineDataStore = machineDataStore.replace('vmPathName = ','')
+ 	machineDataStore = clearFromTrashes(machineDataStore)
+        machineName = machineName.replace('name = ','')
+        machineName = clearFromTrashes(machineName)
+        powerState = powerState.replace('Powered ','')      
         powerState = powerState.split("\n",2)[1]
         if "on" in powerState:
-            print ('{:40}'.format(machineName) + " is: " + powerState + " datastore :" + machineDataStore)
+            print ('{:30}'.format(machineName) + " " + '{:15}'.format(powerState) + " " + '{:40}'.format(machineDataStore))
         else:
-            print ('{:40}'.format(machineName) + " is: " + powerState + " datastore :" + machineDataStore)
+            print ('{:30}'.format(machineName) + " " + '{:15}'.format(powerState) + " " + '{:40}'.format(machineDataStore))
     return
 
 def openConfigFile():
@@ -127,7 +140,7 @@ for i in range(0,(howManyServers(content))):
     password = content.split()[wordIndex]
     wordIndex += 1
     print ("Server = " + getServerName(serverIP, user, password))
-    print (getServerDatastores(serverIP, user, password))
+#    print (getServerDatastores(serverIP, user, password))
     print (getServerVMs(serverIP, user, password))
 
 
