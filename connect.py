@@ -38,25 +38,43 @@ def getServerName (serverIP, user, password):
     serverName = clearFromTrashes(serverName)
     return serverName
 
-def printDatastores(dataStore):
+def printDatastores(datastores):
+    
     print ('{:25}'.format("datastore name") + '{:25}'.format("capacity") + '{:35}'.format("free space"))
-    for i in range (0, len(dataStore)):
+    for i in range (0, len(datastores)):
         if (i == 0) or ( (i % 3) == 0):
-           print ('{:25}'.format(dataStore[i])),
+           print ('{:25}'.format(datastores[i])),
         else: 
-            dataStoreSize = int(dataStore[i])
-            if isTB(dataStoreSize):
-                dataStoreSizeStr = str(convertToTB(dataStoreSize)) + " TB"
+            datastoreSize = int(datastores[i])
+            if isTB(datastoreSize):
+                datastoreSizeStr = str(convertToTB(datastoreSize)) + " TB"
             else:
-                dataStoreSizeStr = str(convertToGB(dataStoreSize)) +" GB"
+                dataStoresizeStr = str(convertToGB(datastoreSize)) +" GB"
             if ((i == 2) or (i == 5) or (i == 8 ) or (i ==11)):
-                print ('{:25}'.format(str(dataStoreSizeStr)))
+                print ('{:25}'.format(str(datastoreSizeStr)))
             else:
-                print ('{:25}'.format(str(dataStoreSizeStr))),
+                print ('{:25}'.format(str(datastoreSizeStr))),
+    return    
+
+def splitDatastores(datastores):
+
+    serverDatastoresList =[]
+    for i in range (0, len(datastores)):
+        if (i == 0) or ( (i % 3) == 0):
+           datastoreName = dataStore[i],
+        else: 
+            datastoreSize = int(datastore[i])
+            if isTB(datasatoreSize):
+                datastoreSizeStr = str(convertToTB(datastoreSize)) + " TB"
+            else:
+                dataStoresizeStr = str(convertToGB(datastoreSize)) +" GB"
+            if ((i == 2) or (i == 5) or (i == 8 ) or (i ==11)):
+                print ('{:25}'.format(str(datastoreSizeStr)))
+            else:
+                print ('{:25}'.format(str(datastoreSizeStr))),
     return
 
 def getServerDatastores(serverIP, user, password):
-
     dataStore = connect(serverIP, user, password, 'vim-cmd hostsvc/datastore/listsummary | grep \"name\|capacity\|freeSpace\"')
     dataStoreName = dataStore.replace(' ','')
     dataStoreName = dataStoreName.replace(',','')
@@ -101,6 +119,7 @@ def getVMSize(serverIP, user, password, vmDataPath):
 
 def getServerVMs(serverIP, user, password):
 
+    vmList = []
     VMsOnServer = connect(serverIP, user, password, "vim-cmd vmsvc/getallvms | awk \'{print $1}\'")
     listVmId = VMsOnServer.split('\n')
     listVmId.pop(0) #remove first item
@@ -120,10 +139,13 @@ def getServerVMs(serverIP, user, password):
         machineName = clearFromTrashes(machineName)
         powerState = powerState.replace('Powered ','')      
         powerState = powerState.split("\n",2)[1]
+        vmList.append([machineName,powerState,machineDataPath,vmSize]) 
         if "on" in powerState:
             print ('{:30}'.format(machineName) + " " + '\033[92m' '{:10}'.format(powerState) + '\033[0m' " " + '{:80}'.format(machineDataPath) + '{:10}'.format(vmSize))
         else:
-            print ('{:30}'.format(machineName) + " " + '\033[91m' '{:10}'.format(powerState) + '\033[0m' " " + '{:80}'.format(machineDataPath) + '{:10}'.format(vmSize))
+            print ('{:30}'.format(machineName) + " " + '\033[91m' '{:11}'.format(powerState) + '\033[0m' " " + '{:80}'.format(machineDataPath) + '{:10}'.format(vmSize))
+  #  for i in range(len(vmList)):
+#	print(vmList[i])
     return
 
 
@@ -160,7 +182,7 @@ for i in range(0,(howManyServers(content))):
     password = content.split()[wordIndex]
     wordIndex += 1
     print ("Server = " + getServerName(serverIP, user, password))
-#    print (getServerDatastores(serverIP, user, password))
+    print (getServerDatastores(serverIP, user, password))
     print (getServerVMs(serverIP, user, password))
 
 
